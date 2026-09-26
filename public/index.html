@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InstaPrice - WhatsApp & Telegram Polymer News Automation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --accent: #2f81f7;
+      --accent-hover: #388bfd;
+      --success: #238636;
+      --success-hover: #2ea043;
+      --warning: #d29922;
+      --danger: #da3633;
+      --text: #c9d1d9;
+      --text-muted: #8b949e;
+      --heading: #f0f6fc;
+      --telegram-bg: #1e2c3a;
+      --telegram-card: #2b3846;
+      --font: 'Outfit', sans-serif;
+      --code-font: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 30px;
+    }
+
+    .logo-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #0088cc, #005f9e);
+      color: #fff;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: var(--heading);
+      font-weight: 600;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1f2937;
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      color: var(--heading);
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 130px;
+      background-color: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--heading);
+      font-family: var(--code-font);
+      font-size: 0.9rem;
+      resize: vertical;
+      margin-bottom: 12px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .preset-btns {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .preset-btn {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      color: var(--heading);
+      border-color: var(--accent);
+    }
+
+    .btn {
+      background-color: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover { background-color: var(--accent-hover); }
+    .btn-success { background-color: var(--success); }
+    .btn-success:hover { background-color: var(--success-hover); }
+
+    /* Extraction Grid */
+    .extracted-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .extracted-item {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 6px;
+    }
+
+    .extracted-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .extracted-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--heading);
+    }
+
+    /* Telegram Box Mock */
+    .telegram-mock {
+      background-color: var(--telegram-bg);
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #28394a;
+    }
+
+    .telegram-msg {
+      background-color: var(--telegram-card);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .telegram-msg h4 {
+      color: #5bb2ec;
+      margin-bottom: 8px;
+    }
+
+    .telegram-msg-content {
+      white-space: pre-wrap;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+
+    .telegram-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tg-btn {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s;
+    }
+
+    .tg-btn:hover { background: rgba(255, 255, 255, 0.18); }
+    .tg-btn-publish { border-color: #238636; color: #4ade80; }
+    .tg-btn-publish:hover { background: rgba(35, 134, 54, 0.4); }
+
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 0.88rem;
+    }
+
+    .alert-warning {
+      background: rgba(210, 153, 34, 0.15);
+      border: 1px solid var(--warning);
+      color: #e3b341;
+    }
+
+    .alert-success {
+      background: rgba(35, 134, 54, 0.15);
+      border: 1px solid var(--success);
+      color: #4ade80;
+    }
+
+    /* Code Box */
+    .code-box {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--code-font);
+      font-size: 0.82rem;
+      color: #7ee787;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    /* History Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .badge-status {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-published { background: rgba(35, 134, 54, 0.2); color: #4ade80; border: 1px solid #238636; }
+    .status-preview { background: rgba(210, 153, 34, 0.2); color: #e3b341; border: 1px solid #d29922; }
+    .status-cancelled { background: rgba(218, 54, 51, 0.2); color: #f85149; border: 1px solid #da3633; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-section">
+        <div class="logo-badge">InstaPrice</div>
+        <h1>Polymer News Automation System</h1>
+      </div>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span id="system-status">System Ready (Mock API Active)</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- Left Column: Input Sandbox -->
+      <div>
+        <div class="card">
+          <div class="card-title">
+            <span>📩</span> WhatsApp Raw Message Simulator
+          </div>
+
+          <div class="preset-btns">
+            <button class="preset-btn" onclick="loadPreset(1)">Preset 1: OPAL Simple Update</button>
+            <button class="preset-btn" onclick="loadPreset(2)">Preset 2: HPL Complex Multi-grade</button>
+          </div>
+
+          <textarea id="rawInput" placeholder="Paste WhatsApp polymer price message here..."></textarea>
+          
+          <button class="btn" onclick="processNews()">
+            <span>⚡</span> Process & Extract News
+          </button>
+        </div>
+
+        <!-- Output: Data Extraction -->
+        <div id="extractedCard" class="card" style="display: none;">
+          <div class="card-title">
+            <span>🔍</span> Step 3 — Extracted Data
+          </div>
+          
+          <div class="extracted-grid">
+            <div class="extracted-item">
+              <div class="extracted-label">Company</div>
+              <div class="extracted-value" id="extCompany">-</div>
+            </div>
+            <div class="extracted-item">
+              <div class="extracted-label">Product</div>
+              <div class="extracted-value" id="extProduct">-</div>
+            </div>
+            <div class="extracted-item">
+              <div class="extracted-label">Action</div>
+              <div class="extracted-value" id="extAction">-</div>
+            </div>
+            <div class="extracted-item">
+              <div class="extracted-label">Price Change</div>
+              <div class="extracted-value" id="extPrice">-</div>
+            </div>
+            <div class="extracted-item">
+              <div class="extracted-label">Effective Date</div>
+              <div class="extracted-value" id="extDate">-</div>
+            </div>
+            <div class="extracted-item">
+              <div class="extracted-label">Source</div>
+              <div class="extracted-value" id="extSource">-</div>
+            </div>
+          </div>
+
+          <div id="duplicateAlert" class="alert alert-warning" style="display: none;">
+            ⚠️ <strong>Duplicate News Detected:</strong> Similar news already exists in database.
+          </div>
+
+          <div class="card-title" style="margin-top: 15px;">
+            <span>📄</span> Generated InstaPrice HTML Payload
+          </div>
+          <div class="code-box" id="htmlPayload">-</div>
+        </div>
+      </div>
+
+      <!-- Right Column: Telegram Preview & API Execution -->
+      <div>
+        <div id="telegramCard" class="card" style="display: none;">
+          <div class="card-title">
+            <span>📲</span> Step 6 — Telegram Preview Simulation
+          </div>
+
+          <div class="telegram-mock">
+            <div class="telegram-msg">
+              <h4>📰 NEWS PREVIEW</h4>
+              <div class="telegram-msg-content" id="tgPreviewText"></div>
+              
+              <div class="telegram-buttons">
+                <button class="tg-btn tg-btn-publish" id="publishBtn" onclick="publishNews()">[ ✅ PUBLISH ]</button>
+                <button class="tg-btn" onclick="editNews()">[ ✏️ EDIT ]</button>
+                <button class="tg-btn" onclick="cancelNews()">[ ❌ CANCEL ]</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="apiResult" style="margin-top: 15px; display: none;"></div>
+        </div>
+
+        <!-- History Card -->
+        <div class="card">
+          <div class="card-title">
+            <span>📜</span> Recent News Records & Logs
+            <button class="preset-btn" style="margin-left: auto;" onclick="loadHistory()">Refresh</button>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Company</th>
+                <th>Product</th>
+                <th>Status</th>
+                <th>News ID</th>
+              </tr>
+            </thead>
+            <tbody id="historyTable">
+              <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No records yet. Process a news message above!</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentRecord = null;
+
+    const PRESETS = {
+      1: `OPAL increased PP Prices by Rs. 2500/MT,\nw.e.f. 21st September 2026.\n\nwww.polymermis.com`,
+      2: `HPL increased PP domestic Prices by Rs. 2500/MT,\nexcept for PP Raffia Prices which is increased by\nRs. 3500/MT approximately w.e.f. 21st September 2026.`
+    };
+
+    function loadPreset(id) {
+      document.getElementById('rawInput').value = PRESETS[id];
+    }
+
+    async function processNews() {
+      const text = document.getElementById('rawInput').value.trim();
+      if (!text) return alert('Please enter a WhatsApp message to process.');
+
+      try {
+        const res = await fetch('/api/news/process', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+        const data = await res.json();
+        if (!data.success) return alert('Error: ' + data.error);
+
+        currentRecord = data.record;
+
+        // Populate Extraction Card
+        document.getElementById('extCompany').innerText = data.parsedData.company;
+        document.getElementById('extProduct').innerText = data.parsedData.product;
+        document.getElementById('extAction').innerText = data.parsedData.action;
+        document.getElementById('extPrice').innerText = data.parsedData.priceChange;
+        document.getElementById('extDate').innerText = data.parsedData.effectiveDate;
+        document.getElementById('extSource').innerText = data.parsedData.source;
+
+        // Duplicate Alert
+        const dupAlert = document.getElementById('duplicateAlert');
+        if (data.duplicateCheck && data.duplicateCheck.isDuplicate) {
+          dupAlert.style.display = 'block';
+          dupAlert.innerHTML = `⚠️ <strong>Duplicate News Detected:</strong> Similar news already exists (News ID: ${data.duplicateCheck.existingNews.news_id || data.duplicateCheck.existingNews.id})`;
+          document.getElementById('publishBtn').innerText = '[ ✅ PUBLISH ANYWAY ]';
+        } else {
+          dupAlert.style.display = 'none';
+          document.getElementById('publishBtn').innerText = '[ ✅ PUBLISH ]';
+        }
+
+        document.getElementById('htmlPayload').innerText = data.formatted.contentHtml;
+        document.getElementById('extractedCard').style.display = 'block';
+
+        // Telegram Preview
+        document.getElementById('tgPreviewText').innerText = data.telegramPreviewText;
+        document.getElementById('telegramCard').style.display = 'block';
+        document.getElementById('apiResult').style.display = 'none';
+
+        loadHistory();
+      } catch (err) {
+        alert('Server Error: ' + err.message);
+      }
+    }
+
+    async function publishNews() {
+      if (!currentRecord) return;
+
+      try {
+        const res = await fetch(`/api/news/${currentRecord.id}/publish`, { method: 'POST' });
+        const data = await res.json();
+        if (!data.success) return alert('Publish failed: ' + data.error);
+
+        const resultBox = document.getElementById('apiResult');
+        resultBox.style.display = 'block';
+        resultBox.className = 'alert alert-success';
+        resultBox.innerHTML = `
+          ✅ <strong>NEWS PUBLISHED SUCCESSFULLY!</strong><br>
+          <strong>News ID:</strong> ${data.data.newsId}<br>
+          <strong>Title:</strong> ${currentRecord.title}<br>
+          <strong>Status:</strong> Published ${data.data.publishResult.isMock ? '(Mock API)' : ''}
+        `;
+
+        loadHistory();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
+
+    async function editNews() {
+      if (!currentRecord) return;
+      const newTitle = prompt('Edit Title:', currentRecord.title);
+      if (!newTitle) return;
+
+      try {
+        const res = await fetch(`/api/news/${currentRecord.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: newTitle })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentRecord = data.record;
+          document.getElementById('tgPreviewText').innerText = `Title:\n${data.record.title}\n\nContent:\n${data.record.content_html}`;
+          loadHistory();
+        }
+      } catch (err) {
+        alert('Edit Error: ' + err.message);
+      }
+    }
+
+    function cancelNews() {
+      if (!currentRecord) return;
+      document.getElementById('telegramCard').style.display = 'none';
+      alert('Draft preview hidden.');
+    }
+
+    async function loadHistory() {
+      try {
+        const res = await fetch('/api/news');
+        const data = await res.json();
+        if (!data.success) return;
+
+        const tbody = document.getElementById('historyTable');
+        if (data.data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No records found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.data.map(item => `
+          <tr>
+            <td>#${item.id}</td>
+            <td><strong>${item.company}</strong></td>
+            <td>${item.product}</td>
+            <td><span class="badge-status status-${item.status}">${item.status}</span></td>
+            <td>${item.news_id ? item.news_id : '-'}</td>
+          </tr>
+        `).join('');
+      } catch (err) {
+        console.error('History load error:', err);
+      }
+    }
+
+    // Load presets on startup
+    loadPreset(1);
+    loadHistory();
+  </script>
+</body>
+</html>

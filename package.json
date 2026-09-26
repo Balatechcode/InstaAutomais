@@ -1,0 +1,30 @@
+{
+  "name": "instaprice-polymer-news-automation",
+  "version": "1.0.0",
+  "description": "Automated WhatsApp/Telegram polymer price news parsing, formatting, duplicate detection, and InstaPrice publishing system.",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node test/parser.test.js"
+  },
+  "keywords": [
+    "polymer",
+    "telegram-bot",
+    "automation",
+    "instaprice",
+    "news-parser"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "sqlite3": "^5.1.7",
+    "telegraf": "^4.16.3"
+  }
+}
