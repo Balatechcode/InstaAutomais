@@ -11,8 +11,12 @@ module.exports = async (req, res) => {
       await db.initDb();
       isDbInitialized = true;
     } catch (err) {
-      console.error('Failed to initialize database on Vercel startup:', err);
+      console.error(
+        'Failed to initialize database on Vercel startup:',
+        err
+      );
     }
   }
+
   return app(req, res);
 };
