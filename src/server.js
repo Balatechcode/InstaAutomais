@@ -125,7 +125,25 @@ function createServer() {
     }
   });
 
+  // Lazy DB init middleware for Serverless execution
+  let isDbInitialized = false;
+  app.use(async (req, res, next) => {
+    if (!isDbInitialized) {
+      try {
+        await db.initDb();
+        isDbInitialized = true;
+      } catch (err) {
+        console.error('Failed to initialize database on Vercel startup:', err);
+      }
+    }
+    next();
+  });
+
   return app;
 }
 
-module.exports = { createServer };
+const app = createServer();
+
+module.exports = app;
+module.exports.createServer = createServer;
+
