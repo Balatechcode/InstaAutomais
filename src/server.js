@@ -16,6 +16,20 @@ function createServer() {
   app.use(bodyParser.json());
   app.use(express.static(path.join(__dirname, '../public')));
 
+  // Lazy DB init middleware for Serverless execution
+  let isDbInitialized = false;
+  app.use(async (req, res, next) => {
+    if (!isDbInitialized) {
+      try {
+        await db.initDb();
+        isDbInitialized = true;
+      } catch (err) {
+        console.error('Failed to initialize database on Vercel startup:', err);
+      }
+    }
+    next();
+  });
+
   // API Health Check
   app.get('/api/health', (req, res) => {
     res.json({
@@ -123,20 +137,6 @@ function createServer() {
     } catch (err) {
       res.status(500).json({ success: false, error: err.message });
     }
-  });
-
-  // Lazy DB init middleware for Serverless execution
-  let isDbInitialized = false;
-  app.use(async (req, res, next) => {
-    if (!isDbInitialized) {
-      try {
-        await db.initDb();
-        isDbInitialized = true;
-      } catch (err) {
-        console.error('Failed to initialize database on Vercel startup:', err);
-      }
-    }
-    next();
   });
 
   return app;

@@ -172,3 +172,7 @@ Handles incoming Telegram Bot update payloads in serverless mode.
 
 ## 📄 License
 ISC License © 2026 Antigravity / InstaPrice Team
+
+
+
+https://api.telegram.org/bot8828576317:AAHDUo0nHCzzk1pPhBIKyDzx9L2P8k3wOY8/setWebhook?url=https://instautomais.vercel.app/api/telegram-webhook
