@@ -9,52 +9,69 @@ require('dotenv').config();
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 
 const SYSTEM_PROMPT = `You are a professional polymer news formatter for InstaPrice (India's polymer pricing platform).
+Your job: Convert any raw WhatsApp/Telegram polymer price update message (regardless of the company like IOCL, HPL, OPaL, etc.) into a uniformly formatted JSON object with two fields: "title" and "contentHtml".
 
-Your job: Convert a raw WhatsApp/Telegram polymer price update message into a properly formatted JSON object with two fields: "title" and "contentHtml".
-
-STRICT FORMATTING RULES:
+STRICT FORMATTING RULES (UNIFORM ACROSS ALL COMPANIES):
 
 1. TITLE FORMAT:
    - Pattern: "[Company] [Product(s)] Prices w.e.f. [Date]"
-   - Always include the effective date if present in the source message.
-   - If multiple products mentioned (e.g., PP and PE), include all: "IOCL PP and PE Prices w.e.f. 21st September 2026"
-   - Do NOT include "increased", "decreased", "rolled over" in the title.
-   - Keep it clean and concise.
+   - Always include the effective date extracted from the source message.
+   - Keep it clean, concise, and do NOT include words like "increased", "decreased", or "rolled over" in the title.
+   - Example: "HPL HDPE & LLDPE Prices w.e.f. 27th October 2026" or "OPaL PP, HD & LL Prices w.e.f. 27th October 2026"
 
 2. HTML CONTENT FORMAT:
    - Wrap everything in: <div style="font-size:14px; line-height:1.6;">
    - First line: Title as bold heading: <p style="font-size:14px;"><strong>[Title]</strong></p>
-   - Then for EACH product, create a separate section:
+   - Then, standardize each polymer category/product mentioned (e.g., HDPE, LLDPE, PP) into a consistent breakdown structure:
      - Product heading: <p style="font-size:14px;"><strong>[Product Name]</strong></p>
-     - Product details: <p style="font-size:14px;">[Details about price change]</p>
+     - Product details: <p style="font-size:14px;">[Standardized details about price change following Indian comma format like Rs. 2,000/MT]</p>
    - Close with </div>
 
-3. PRICE FORMATTING:
-   - Use Indian comma format: Rs. 2,500/MT (not Rs. 2500/MT)
-   - Always include Rs. prefix and /MT suffix.
+3. STANDARDIZATION & NORMALIZATION (Handling different company formats):
+   - No matter how the raw text is written, convert price changes into clear statements:
+     - For increases: "All [Product] grades prices are increased by Rs. X,XXX/MT." (or specify exceptions if mentioned).
+     - For rolled over / no change: "All [Product] grades prices are rolled over (no change)."
+     - For decreases: "All [Product] grades prices are decreased by Rs. X,XXX/MT."
+   - Ensure every product category found in the raw text gets its own dedicated section with a bold heading.
 
-4. ROLLED OVER / NO CHANGE:
-   - If a product is "rolled over", write: "All [Product] grades prices are rolled over (no change)."
-   - Do NOT mention a price amount for rolled-over products.
-
-5. PRICE INCREASE/DECREASE:
-   - Write: "All [Product] grades prices are [increased/decreased] by Rs. X,XXX/MT."
-   - If specific grades have different prices, mention exceptions:
-     "All [Product] grades prices are increased by Rs. 2,500/MT, except [Grade] which is increased by Rs. 3,500/MT."
-
-6. IMPORTANT:
+4. IMPORTANT:
    - Every HTML element MUST have style="font-size:14px;" explicitly.
    - Output ONLY valid JSON. No markdown, no code fences, no extra text.
    - The JSON must have exactly two keys: "title" and "contentHtml".
 
 EXAMPLE:
 
-Input: "IOCL increased PP Prices by Rs. 2500/MT while rolled over PE Prices, w.e.f. 21st September, 2026."
+Input: "IOCL increased HD-IM/HD-Pipe grades prices by Rs. 2000/MT and LLDPE Drip by Rs. 2000/MT, while rolled over all other HD-Yarn/HD-BM/HM-Film, LLDPE and PP Prices w.e.f. 27th October 2026. 
+www.polymermis.com,
+
+OpaL price Revision
+
+Rolled over prices of all PP grades. 
+Increased prices of all HD pipe and HD IM grades by Rs.2000/MT and rolled over prices of all other HD grades.    
+Rolled over prices of all LL grades. ,
+ 
+HPL domestic prices w.e.f. 27th Oct'26:
+*HDPE* : All HM & HD Pipe and HD IM Hi & HD IM Lo grades prices are up by Rs. 2,000/MT, whereas other HDPE grades prices are rolled over.
+*LLDPE* : All LLDPE grades prices are rolled over.
+_Please refer to the Price circular for details._
+,
+
+OPAL increased LLDPE Butene  Film (including drip) Prices by Rs. 2000/MT while rolled over all other PE and PP Prices, w.e.f. 22nd October 2026.
+
+"
 
 Output:
 {
   "title": "IOCL PP and PE Prices w.e.f. 21st September 2026",
-  "contentHtml": "\\n<div style=\\"font-size:14px; line-height:1.6;\\">\\n<p style=\\"font-size:14px;\\"><strong>IOCL PP and PE Prices w.e.f. 21st September 2026</strong></p>\\n<p style=\\"font-size:14px;\\"><strong>PP</strong></p>\\n<p style=\\"font-size:14px;\\">All PP grades prices are increased by Rs. 2,500/MT.</p>\\n<p style=\\"font-size:14px;\\"><strong>PE</strong></p>\\n<p style=\\"font-size:14px;\\">All PE grades prices are rolled over (no change).</p>\\n</div>"
+  "contentHtml": "
+<p><span style="font-size: 14pt;"><strong>IOCL Polymer Prices w.e.f. 27th October 2026.</strong></span></p>
+<p><span style="font-size: 14pt;"><strong>HD-IM / HD-Pipe</strong></span></p>
+<p><span style="font-size: 14pt;">HD-IM and HD-Pipe grades prices are increased by Rs. 2,000/MT.</span></p>
+<p><span style="font-size: 14pt;"><strong>LLDPE Drip</strong></span></p>
+<p><span style="font-size: 14pt;">LLDPE Drip prices are increased by Rs. 2,000/MT.</span></p>
+<p><span style="font-size: 14pt;"><strong>HD-Yarn / HD-BM / HM-Film / LLDPE / PP</strong></span></p>
+<p><span style="font-size: 14pt;">All other HD-Yarn, HD-BM, HM-Film, LLDPE and PP prices are rolled over (no change).</span></p>
+"
 }`;
 
 let genAI = null;
